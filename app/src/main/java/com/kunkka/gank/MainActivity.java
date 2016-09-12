@@ -3,6 +3,11 @@ package com.kunkka.gank;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,9 +17,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.FrameLayout;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import com.kunkka.gank.model.DailyModel;
+import com.kunkka.gank.pojo.Item;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Observer;
+
+import rx.Subscriber;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private MainAdapter mMainAdapter;
+    private Toast mToast;
+    private long mLastBackTime = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +61,16 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        MainContract.Presenter presenter = new MainPresenter();
+        ItemsFragment fragment = ItemsFragment.newInstance(presenter);
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.content_main, fragment);
+        ft.commit();
+
+        presenter.setView(fragment);
+        presenter.start();
     }
 
     @Override
@@ -47,8 +78,15 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
+        } else if (System.currentTimeMillis() - mLastBackTime < 2000) {
+            if (mToast != null) {
+                mToast.cancel();
+            }
             super.onBackPressed();
+        } else {
+            mToast = Toast.makeText(this, R.string.exit_notice, Toast.LENGTH_SHORT);
+            mToast.show();
+            mLastBackTime = System.currentTimeMillis();
         }
     }
 
