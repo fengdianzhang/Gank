@@ -1,5 +1,6 @@
 package com.kunkka.gank;
 
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import com.kunkka.gank.model.DailyModel;
@@ -23,6 +24,11 @@ public class MainPresenter implements MainContract.Presenter {
     private MainContract.View mView;
     private final List<String> mDays = new ArrayList<>();
     private int mCurrIndex = 0;
+    private final Toolbar mToolbar;
+
+    public MainPresenter(Toolbar toolbar) {
+        mToolbar = toolbar;
+    }
 
     @Override
     public void setView(MainContract.View view) {
@@ -50,34 +56,30 @@ public class MainPresenter implements MainContract.Presenter {
     }
 
     @Override
+    public void setTitle(String title) {
+        if (title != null) {
+            mToolbar.setTitle(title);
+        }
+    }
+
+    @Override
     public void loadMore() {
         final String date = mDays.get(mCurrIndex++);
-        String[] yymmdd = date.split("-");
-        int year = Integer.parseInt(yymmdd[0]);
-        int month = Integer.parseInt(yymmdd[1]);
-        int day = Integer.parseInt(yymmdd[2]);
-        DailyModel.getInstance().requestDailyData(year, month, day, new Subscriber<Map<String, List<Item>>>() {
+        DailyModel.getInstance().requestDailyData(date, new Subscriber<List<Item>>() {
             @Override
             public void onCompleted() {
-                Log.d(TAG, "request complete");
+                Log.d(TAG, "onCompleted: ");
             }
 
             @Override
             public void onError(Throwable e) {
-                Log.d(TAG, "request error, msg = " + e.getMessage());
+                Log.d(TAG, "onError: ");
             }
 
             @Override
-            public void onNext(Map<String, List<Item>> map) {
-                Log.d(TAG, "request success, Map = " + map);
-//                mMainAdapter.setItems(stringItemMap);
-                Item item = new Item();
-                item.setType("date");
-                item.setTitle(date);
-                List<Item> list = new ArrayList<Item>();
-                list.add(item);
-                map.put("date", list);
-                mView.addItems(map);
+            public void onNext(List<Item> items) {
+                Log.d(TAG, "onNext: " + items);
+                mView.addItems(items);
             }
         });
     }

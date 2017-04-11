@@ -4,16 +4,17 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.kunkka.gank.pojo.Item;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 
 public class ItemsFragment extends Fragment implements MainContract.View {
+    private static final String TAG = "ItemsFragment";
     private MainContract.Presenter mPresenter;
     private MainAdapter mMainAdapter;
     private RecyclerView rv;
@@ -55,16 +56,19 @@ public class ItemsFragment extends Fragment implements MainContract.View {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
+                Log.d(TAG, "onScrollStateChanged: " + newState);
             }
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (mPresenter != null && dy > 0) {
+                if (mPresenter != null) {
+                    int firstVisiblePosition = mLayoutManager.findFirstVisibleItemPosition();
                     int lastVisiblePosition = mLayoutManager.findLastVisibleItemPosition();
                     if (lastVisiblePosition + 1 == mMainAdapter.getItemCount()) {
                         mPresenter.loadMore();
                     }
+                    mPresenter.setTitle(mMainAdapter.getCurrTitle(firstVisiblePosition));
                 }
             }
         });
@@ -72,7 +76,7 @@ public class ItemsFragment extends Fragment implements MainContract.View {
     }
 
     @Override
-    public void addItems(Map<String, List<Item>> items) {
+    public void addItems(Collection<Item> items) {
         mMainAdapter.setItems(items);
     }
 

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "福利",
+    "order": 1,
+    "logo": "logo_girl"
+  },
+  {
+    "name": "Android",
+    "order": 2,
+    "logo": "logo_android"
+  },
+  {
+    "name": "iOS",
+    "order": 3,
+    "logo": "logo_ios"
+  },
+  {
+    "name": "前端",
+    "order": 4,
+    "logo": "logo_html5"
+  },
+  {
+    "name": "App",
+    "order": 5,
+    "logo": "logo_chrome"
+  },
+  {
+    "name": "瞎推荐",
+    "order": 6,
+    "logo": "logo_recommend"
+  },
+  {
+    "name": "休息视频",
+    "order": 7,
+    "logo": "logo_video"
+  },
+  {
+    "name": "拓展资源",
+    "order": 8,
+    "logo": "logo_books"
+  }
+]

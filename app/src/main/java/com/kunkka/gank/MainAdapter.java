@@ -10,15 +10,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.kunkka.gank.pojo.Item;
+import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -31,20 +32,15 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final LayoutInflater mInflater;
     private final List<Item> mItems = new ArrayList<>();
     private final Context mContext;
-    private final Comparator<Item> mComparator = new ItemComparator();
 
     public MainAdapter(Context context) {
         mInflater = LayoutInflater.from(context);
         mContext = context;
     }
 
-    public void setItems(Map<String, List<Item>> items) {
-        List<Item> tmp = new ArrayList<>();
-        for (List<Item> list : items.values()) {
-            tmp.addAll(list);
-        }
-        Collections.sort(tmp, mComparator);
-        mItems.addAll(tmp);
+    public void setItems(Collection<Item> items) {
+        mItems.addAll(items);
+        Collections.sort(mItems);
         notifyDataSetChanged();
     }
 
@@ -84,7 +80,8 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (holder instanceof ItemViewHolder) {
             ItemViewHolder ivh = (ItemViewHolder) holder;
             ivh.title.setText(item.getTitle());
-            ivh.type.setText(item.getType());
+            ivh.icon.setImageResource(item.getIconResId());
+            ivh.author.setText(item.getAuthor());
             ivh.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -97,7 +94,16 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             });
         } else if (holder instanceof ImageViewHolder) {
             ImageViewHolder ivh = (ImageViewHolder) holder;
-            Glide.with(mContext).load(item.getUrl()).into(ivh.image);
+            Picasso.with(mContext)
+                    .load(item.getUrl())
+                    .placeholder(R.drawable.placeholder)
+                    .into(ivh.image);
+            ivh.image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent;
+                }
+            });
         } else if (holder.itemView instanceof TextView) {
             ((TextView) holder.itemView).setText(item.getTitle());
         }
@@ -108,15 +114,27 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return mItems.size();
     }
 
+    public String getCurrTitle(int firstVisiblePosition) {
+        Item item = mItems.get(firstVisiblePosition);
+        try {
+            return new SimpleDateFormat("M月d日 EEEE", Locale.CHINA)
+                    .format(new SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).parse(item.getDate()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     static class ItemViewHolder extends RecyclerView.ViewHolder {
         @Bind(R.id.title)
         TextView title;
+        @Bind(R.id.icon)
+        ImageView icon;
+        @Bind(R.id.author)
+        TextView author;
 
-        @Bind(R.id.type)
-        TextView type;
-
-        public ItemViewHolder(View itemView) {
+        ItemViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
@@ -126,30 +144,9 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         @Bind(R.id.image)
         ImageView image;
 
-        public ImageViewHolder(View itemView) {
+        ImageViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-        }
-    }
-
-    static class ItemComparator implements Comparator<Item> {
-        static Map<String, Integer> priorityMap = new HashMap<>();
-
-        static {
-            priorityMap.put("date", 1);
-            priorityMap.put("福利", 2);
-            priorityMap.put("Android", 3);
-            priorityMap.put("iOS", 4);
-            priorityMap.put("App", 5);
-            priorityMap.put("瞎推荐", 6);
-            priorityMap.put("休息视频", 7);
-        }
-
-        @Override
-        public int compare(Item lhs, Item rhs) {
-            Integer lp = priorityMap.get(lhs.getType());
-            Integer rp = priorityMap.get(rhs.getType());
-            return lp == null || rp == null ? 0 : lp - rp;
         }
     }
 }

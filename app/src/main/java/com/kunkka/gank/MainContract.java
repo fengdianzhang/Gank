@@ -2,6 +2,7 @@ package com.kunkka.gank;
 
 import com.kunkka.gank.pojo.Item;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -15,11 +16,13 @@ public interface MainContract {
 
         void start();
 
+        void setTitle(String title);
+
         void loadMore();
     }
 
     interface View {
-        void addItems(Map<String,List<Item>> items);
+        void addItems(Collection<Item> items);
 
         void showError();
     }

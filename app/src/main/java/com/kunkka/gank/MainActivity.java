@@ -1,37 +1,30 @@
 package com.kunkka.gank;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.FrameLayout;
-import android.widget.ListView;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
-import com.kunkka.gank.model.DailyModel;
-import com.kunkka.gank.pojo.Item;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.kunkka.gank.pojo.Type;
+import com.kunkka.gank.tools.Utils;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Observer;
-
-import rx.Subscriber;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CompoundButton.OnCheckedChangeListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     private MainAdapter mMainAdapter;
     private Toast mToast;
@@ -44,25 +37,15 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-            this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        initDrawerMenu();
 
-        MainContract.Presenter presenter = new MainPresenter();
+        MainContract.Presenter presenter = new MainPresenter(toolbar);
         ItemsFragment fragment = ItemsFragment.newInstance(presenter);
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
@@ -71,6 +54,24 @@ public class MainActivity extends AppCompatActivity
 
         presenter.setView(fragment);
         presenter.start();
+    }
+
+    private void initDrawerMenu() {
+        String type = Utils.loadJSONFromAsset(this, "types.json");
+        List<Type> types = new Gson().fromJson(type, new TypeToken<List<Type>>() {
+        }.getType());
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu().findItem(R.id.subscribe).getSubMenu();
+        for (Type t : types) {
+            menu.add(Menu.NONE, t.getOrder(), t.getOrder(), t.getName());
+            CheckBox box = new CheckBox(this);
+            box.setTag(t.getName());
+            box.setChecked(true);
+            box.setOnCheckedChangeListener(this);
+            menu.findItem(t.getOrder()).setActionView(box);
+            menu.findItem(t.getOrder()).setIcon(t.getLogoResId(this));
+        }
     }
 
     @Override
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+//item.getActionView()
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
@@ -117,23 +118,32 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
+        Log.d(TAG, "onNavigationItemSelected: " + item);
+//        if (id == R.id.nav_camera) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+//        } else if (id == R.id.nav_gallery) {
 
-        } else if (id == R.id.nav_slideshow) {
+//        } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
+//        } else if (id == R.id.nav_manage) {
 
-        } else if (id == R.id.nav_share) {
+//        } else if (id == R.id.nav_share) {
+//            NavigationView nav = (NavigationView)findViewById(R.id.navigation_view);
+//            CompoundButton switchView = (CompoundButton) MenuItemCompat.getActionView(item);
+//            switchView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//                @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) { }
+//            });
+//        } else if (id == R.id.nav_send) {
 
-        } else if (id == R.id.nav_send) {
-
-        }
+//        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+//        drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        Log.d(TAG, "onCheckedChanged: " + buttonView.getTag());
     }
 }

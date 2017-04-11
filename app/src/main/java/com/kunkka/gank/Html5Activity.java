@@ -1,11 +1,16 @@
 package com.kunkka.gank;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.GeolocationPermissions;
 import android.webkit.WebChromeClient;
@@ -31,6 +36,37 @@ public class Html5Activity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_web);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+        toolbar.inflateMenu(R.menu.activity_web);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.nav_browser:
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mUrl)));
+                        break;
+                    case R.id.nav_star:
+                        break;
+                    case R.id.nav_share:
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "asdf");
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, mUrl);
+                        shareIntent.setType("text/plain");
+                        startActivity(shareIntent);
+                        break;
+                }
+                return true;
+            }
+        });
+//        setSupportActionBar(toolbar);
+
         Bundle bundle = getIntent().getBundleExtra("bundle");
         mUrl = bundle.getString("url");
 
@@ -50,6 +86,8 @@ public class Html5Activity extends AppCompatActivity {
         mWebSettings.setUseWideViewPort(true);
         mWebSettings.setDefaultTextEncodingName("utf-8");
         mWebSettings.setLoadsImagesAutomatically(true);
+        mWebSettings.setPluginState(WebSettings.PluginState.ON);
+        mWebSettings.setAllowFileAccess(true);
 
         //调用JS方法.安卓版本大于17,加上注解 @JavascriptInterface
         mWebSettings.setJavaScriptEnabled(true);
@@ -59,6 +97,7 @@ public class Html5Activity extends AppCompatActivity {
         newWin(mWebSettings);
 
         mWebView.setWebChromeClient(webChromeClient);
+//        mWebView.setWebChromeClient(new WebChromeClient());
         mWebView.setWebViewClient(webViewClient);
         mWebView.loadUrl(mUrl);
     }
@@ -69,7 +108,7 @@ public class Html5Activity extends AppCompatActivity {
     private void newWin(WebSettings mWebSettings) {
         //html中的_bank标签就是新建窗口打开，有时会打不开，需要加以下
         //然后 复写 WebChromeClient的onCreateWindow方法
-        mWebSettings.setSupportMultipleWindows(true);
+        mWebSettings.setSupportMultipleWindows(false);
         mWebSettings.setJavaScriptCanOpenWindowsAutomatically(true);
     }
 
