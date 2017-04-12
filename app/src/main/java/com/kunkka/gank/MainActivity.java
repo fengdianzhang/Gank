@@ -14,64 +14,50 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.kunkka.gank.MainContract.MainView;
 import com.kunkka.gank.pojo.Type;
 import com.kunkka.gank.tools.Utils;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, CompoundButton.OnCheckedChangeListener {
+public class MainActivity extends AppCompatActivity implements MainView {
     private static final String TAG = MainActivity.class.getSimpleName();
     private MainAdapter mMainAdapter;
     private Toast mToast;
     private long mLastBackTime = 0;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
+        MainContract.Presenter presenter = new MainPresenter();
+        drawer.addDrawerListener(presenter.getDrawerListener());
         toggle.syncState();
 
-        initDrawerMenu();
-
-        MainContract.Presenter presenter = new MainPresenter(toolbar);
         ItemsFragment fragment = ItemsFragment.newInstance(presenter);
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.add(R.id.content_main, fragment);
         ft.commit();
 
-        presenter.setView(fragment);
+        presenter.setItemView(fragment);
+        presenter.setMainView(this);
         presenter.start();
-    }
-
-    private void initDrawerMenu() {
-        String type = Utils.loadJSONFromAsset(this, "types.json");
-        List<Type> types = new Gson().fromJson(type, new TypeToken<List<Type>>() {
-        }.getType());
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        Menu menu = navigationView.getMenu().findItem(R.id.subscribe).getSubMenu();
-        for (Type t : types) {
-            menu.add(Menu.NONE, t.getOrder(), t.getOrder(), t.getName());
-            CheckBox box = new CheckBox(this);
-            box.setTag(t.getName());
-            box.setChecked(true);
-            box.setOnCheckedChangeListener(this);
-            menu.findItem(t.getOrder()).setActionView(box);
-            menu.findItem(t.getOrder()).setIcon(t.getLogoResId(this));
-        }
     }
 
     @Override
@@ -113,37 +99,24 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        Log.d(TAG, "onNavigationItemSelected: " + item);
-//        if (id == R.id.nav_camera) {
-            // Handle the camera action
-//        } else if (id == R.id.nav_gallery) {
-
-//        } else if (id == R.id.nav_slideshow) {
-
-//        } else if (id == R.id.nav_manage) {
-
-//        } else if (id == R.id.nav_share) {
-//            NavigationView nav = (NavigationView)findViewById(R.id.navigation_view);
-//            CompoundButton switchView = (CompoundButton) MenuItemCompat.getActionView(item);
-//            switchView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//                @Override public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) { }
-//            });
-//        } else if (id == R.id.nav_send) {
-
-//        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        drawer.closeDrawer(GravityCompat.START);
-        return true;
+    public void setTitle(String title) {
+        mToolbar.setTitle(title);
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        Log.d(TAG, "onCheckedChanged: " + buttonView.getTag());
+    public void initMenu(Collection<Type> types, OnCheckedChangeListener listener) {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu().findItem(R.id.subscribe).getSubMenu();
+        for (Type type : Type.getTypeMap().values()) {
+            Log.d(TAG, type.toString());
+            menu.add(Menu.NONE, type.getOrder(), type.getOrder(), type.getName());
+            CheckBox box = new CheckBox(this);
+            box.setTag(type.getName());
+            box.setChecked(type.isEnable());
+            box.setOnCheckedChangeListener(listener);
+            menu.findItem(type.getOrder()).setActionView(box);
+            menu.findItem(type.getOrder()).setIcon(type.getLogoResId(this));
+        }
     }
 }

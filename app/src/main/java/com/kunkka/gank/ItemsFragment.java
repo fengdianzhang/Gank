@@ -9,37 +9,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.kunkka.gank.MainContract.ItemView;
 import com.kunkka.gank.pojo.Item;
 
 import java.util.Collection;
+import java.util.Set;
 
-public class ItemsFragment extends Fragment implements MainContract.View {
+public class ItemsFragment extends Fragment implements ItemView {
     private static final String TAG = "ItemsFragment";
     private MainContract.Presenter mPresenter;
     private MainAdapter mMainAdapter;
-    private RecyclerView rv;
+    private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
-
-    public ItemsFragment() {
-    }
 
     public static ItemsFragment newInstance(MainContract.Presenter presenter) {
         ItemsFragment fragment = new ItemsFragment();
         fragment.mPresenter = presenter;
         Bundle args = new Bundle();
-//        args.put("", presenter);
-//        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -47,12 +35,12 @@ public class ItemsFragment extends Fragment implements MainContract.View {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View root = inflater.inflate(R.layout.content_main, container, false);
-        rv = (RecyclerView) root.findViewById(R.id.recycler_view);
+        mRecyclerView = (RecyclerView) root.findViewById(R.id.recycler_view);
         mLayoutManager = new LinearLayoutManager(getContext());
-        rv.setLayoutManager(mLayoutManager);
+        mRecyclerView.setLayoutManager(mLayoutManager);
         mMainAdapter = new MainAdapter(getContext());
-        rv.setAdapter(mMainAdapter);
-        rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+        mRecyclerView.setAdapter(mMainAdapter);
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
@@ -77,7 +65,14 @@ public class ItemsFragment extends Fragment implements MainContract.View {
 
     @Override
     public void addItems(Collection<Item> items) {
-        mMainAdapter.setItems(items);
+        mMainAdapter.addItems(items);
+    }
+
+    @Override
+    public void filter(Set<String> filterNames) {
+        if (mMainAdapter.filter(filterNames)) {
+            mRecyclerView.scrollToPosition(0);
+        }
     }
 
     @Override

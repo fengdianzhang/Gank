@@ -18,8 +18,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -31,6 +33,8 @@ import butterknife.ButterKnife;
 public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final LayoutInflater mInflater;
     private final List<Item> mItems = new ArrayList<>();
+    private final List<Item> mAllItems = new ArrayList<>();
+    private final Collection<String> mFilterNames = new HashSet<>();
     private final Context mContext;
 
     public MainAdapter(Context context) {
@@ -38,8 +42,13 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         mContext = context;
     }
 
-    public void setItems(Collection<Item> items) {
-        mItems.addAll(items);
+    public void addItems(Collection<Item> items) {
+        mAllItems.addAll(items);
+        for (Item item : items) {
+            if (!mFilterNames.contains(item.getType())) {
+                mItems.add(item);
+            }
+        }
         Collections.sort(mItems);
         notifyDataSetChanged();
     }
@@ -123,6 +132,23 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public boolean filter(Set<String> filterNames) {
+        if (mFilterNames.equals(filterNames)) {
+            return false;
+        }
+        mFilterNames.clear();
+        mFilterNames.addAll(filterNames);
+        mItems.clear();
+        for (Item item : mAllItems) {
+            if (!mFilterNames.contains(item.getType())) {
+                mItems.add(item);
+            }
+        }
+        Collections.sort(mItems);
+        notifyDataSetChanged();
+        return true;
     }
 
 
