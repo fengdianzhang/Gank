@@ -26,7 +26,8 @@
         <activity
             android:name=".Html5Activity"
             android:hardwareAccelerated="true" />
-        <activity android:name=".GalleryActivity"></activity>
+        <activity
+            android:name=".GalleryActivity"/>
         <activity
             android:name=".wxapi.WXEntryActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"

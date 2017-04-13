@@ -110,7 +110,9 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             ivh.image.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent;
+                    Intent intent = new Intent(mContext, GalleryActivity.class);
+                    intent.putExtra("url", item.getUrl());
+                    mContext.startActivity(intent);
                 }
             });
         } else if (holder.itemView instanceof TextView) {
